@@ -30,7 +30,7 @@ const Auth = ({ onLoginSuccess }) => {
         ? { identifier, password } 
         : { name, username, email, password };
         
-      const response = await axios.post(`http://localhost:5000/api/auth${endpoint}`, payload);
+      const response = await axios.post(`https://nexuschat-backend-ysa6.onrender.com/api/auth${endpoint}`, payload);
 
       if (isLoginView) {
         toast.success(`Welcome back, ${response.data.user.name || 'User'}!`); 

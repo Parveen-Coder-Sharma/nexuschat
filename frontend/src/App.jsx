@@ -12,7 +12,7 @@ import ProfileModal from './components/ProfileModal';
 import VideoCallModal from './components/VideoCallModal'; 
 import CreateGroupModal from './components/CreateGroupModal'; 
 
-const socket = io.connect("http://localhost:5000");
+const socket = io.connect("https://nexuschat-backend-ysa6.onrender.com");
 
 const msgNotificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'); 
 const incomingRingSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1356/1356-preview.mp3'); 
@@ -104,7 +104,7 @@ function App() {
     if (!partnerId) return;
     try {
       const roomId = getRoomId(myId, partnerId);
-      const response = await axios.post(`http://localhost:5000/api/messages/send/${partnerId}`, { text: logText }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`https://nexuschat-backend-ysa6.onrender.com/api/messages/send/${partnerId}`, { text: logText }, { headers: { Authorization: `Bearer ${token}` } });
       const messageData = { ...response.data, roomId };
       socket.emit("send_message", messageData);
       if (selectedUser && selectedUser._id === partnerId) setMessageList((prev) => [...prev, messageData]);
@@ -175,18 +175,18 @@ function App() {
 
   useEffect(() => {
     if (token) {
-      axios.get('http://localhost:5000/api/users/contacts', { headers: { Authorization: `Bearer ${token}` } })
+      axios.get('https://nexuschat-backend-ysa6.onrender.com/api/users/contacts', { headers: { Authorization: `Bearer ${token}` } })
         .then(response => { setUsers(response.data); response.data.forEach(contact => socket.emit("join_room", getRoomId(myId, contact._id))); }).catch(err => { if (err.response?.status === 401) handleLogout(); });
-      axios.get('http://localhost:5000/api/groups/my-groups', { headers: { Authorization: `Bearer ${token}` } })
+      axios.get('https://nexuschat-backend-ysa6.onrender.com/api/groups/my-groups', { headers: { Authorization: `Bearer ${token}` } })
         .then(response => { setGroups(response.data); response.data.forEach(group => socket.emit("join_room", group._id)); }).catch(err => console.log(err));
-      axios.get('http://localhost:5000/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
+      axios.get('https://nexuschat-backend-ysa6.onrender.com/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
         .then(response => setCurrentUser(response.data));
     }
   }, [token, myId]);
 
   const handleAddContact = async (identifier) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/users/add-contact', { searchQuery: identifier }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post('https://nexuschat-backend-ysa6.onrender.com/api/users/add-contact', { searchQuery: identifier }, { headers: { Authorization: `Bearer ${token}` } });
       setUsers((prev) => [...prev, response.data.contact]);
       socket.emit("join_room", getRoomId(myId, response.data.contact._id));
       toast.success(response.data.message);
@@ -196,7 +196,7 @@ function App() {
   const handleCreateGroup = async (groupName, selectedIds) => {
       try {
           const toastId = toast.loading("Creating group...");
-          const response = await axios.post('http://localhost:5000/api/groups/create', { groupName, participants: selectedIds }, { headers: { Authorization: `Bearer ${token}` } });
+          const response = await axios.post('https://nexuschat-backend-ysa6.onrender.com/api/groups/create', { groupName, participants: selectedIds }, { headers: { Authorization: `Bearer ${token}` } });
           const newGroup = response.data;
           setGroups(prev => [newGroup, ...prev]);
           socket.emit("join_room", newGroup._id); 
@@ -220,7 +220,7 @@ function App() {
       if(selectedUser.isGroup) { setGroups(prev => prev.map(g => g._id === selectedUser._id ? { ...g, unreadCount: 0 } : g)); }
       else { setUsers(prev => prev.map(u => u._id === selectedUser._id ? { ...u, unreadCount: 0 } : u)); }
       
-      axios.get(`http://localhost:5000/api/messages/${selectedUser._id}?page=1&limit=50`, { headers: { Authorization: `Bearer ${token}` } })
+      axios.get(`https://nexuschat-backend-ysa6.onrender.com/api/messages/${selectedUser._id}?page=1&limit=50`, { headers: { Authorization: `Bearer ${token}` } })
         .then(response => {
           if (response.data.length < 50) setHasMoreMessages(false);
           setMessageList(response.data);
@@ -235,7 +235,7 @@ function App() {
     setIsLoadingHistory(true);
     try {
       const nextPage = page + 1;
-      const response = await axios.get(`http://localhost:5000/api/messages/${selectedUser._id}?page=${nextPage}&limit=50`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get(`https://nexuschat-backend-ysa6.onrender.com/api/messages/${selectedUser._id}?page=${nextPage}&limit=50`, { headers: { Authorization: `Bearer ${token}` } });
       if (response.data.length < 50) setHasMoreMessages(false);
       setMessageList((prev) => [...response.data, ...prev]); setPage(nextPage);
     } catch (error) {}
@@ -279,7 +279,7 @@ function App() {
     if (!selectedUser) return;
     const roomId = getCurrentRoomId(selectedUser);
     try {
-      const response = await axios.post(`http://localhost:5000/api/messages/send/${selectedUser._id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(`https://nexuschat-backend-ysa6.onrender.com/api/messages/send/${selectedUser._id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
       const messageData = { ...response.data, roomId };
       socket.emit("send_message", messageData);
       setMessageList((prev) => [...prev, messageData]);
@@ -292,7 +292,7 @@ function App() {
       for (const targetId of targetUserIds) {
         const isGroupTarget = groups.some(g => g._id === targetId);
         const roomId = isGroupTarget ? targetId : getRoomId(myId, targetId);
-        const response = await axios.post(`http://localhost:5000/api/messages/send/${targetId}`, 
+        const response = await axios.post(`https://nexuschat-backend-ysa6.onrender.com/api/messages/send/${targetId}`, 
           { text, imageUrl, videoUrl, audioUrl, documentUrl, documentName, isForwarded: true }, { headers: { Authorization: `Bearer ${token}` } }
         );
         const messageData = { ...response.data, roomId };
@@ -305,7 +305,7 @@ function App() {
 
   const deleteMessage = async (msgId, deleteType) => {
     try {
-      await axios.delete(`http://localhost:5000/api/messages/${msgId}?type=${deleteType}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`https://nexuschat-backend-ysa6.onrender.com/api/messages/${msgId}?type=${deleteType}`, { headers: { Authorization: `Bearer ${token}` } });
       setMessageList((prev) => prev.filter((m) => m._id !== msgId));
       if (deleteType === 'everyone') { socket.emit("delete_message", { messageId: msgId, roomId: getCurrentRoomId(selectedUser) }); toast.success("Message deleted"); } 
       else { toast.success("Message deleted for you"); }
@@ -314,14 +314,14 @@ function App() {
 
   const handleReactToMessage = async (msgId, emoji) => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/messages/${msgId}/react`, { emoji }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.put(`https://nexuschat-backend-ysa6.onrender.com/api/messages/${msgId}/react`, { emoji }, { headers: { Authorization: `Bearer ${token}` } });
       setMessageList((prev) => prev.map((m) => m._id === msgId ? response.data : m));
     } catch (error) { toast.error("Failed to react to message"); }
   };
 
   const clearChat = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/messages/clear/${selectedUser._id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`https://nexuschat-backend-ysa6.onrender.com/api/messages/clear/${selectedUser._id}`, { headers: { Authorization: `Bearer ${token}` } });
       setMessageList([]); toast.success("Chat cleared"); 
     } catch (error) { toast.error("Failed to clear chat"); }
   };

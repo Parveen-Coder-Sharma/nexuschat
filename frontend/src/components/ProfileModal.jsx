@@ -56,7 +56,7 @@ const ProfileModal = ({ isOpen, onClose, currentUser, token, onProfileUpdate }) 
 
       // 2. Transmit fully formatted data object to the backend endpoint
       const response = await axios.put(
-        'http://localhost:5000/api/users/profile',
+        'https://nexuschat-backend-ysa6.onrender.com/api/users/profile',
         {
           profilePic: finalImageUrl,
           dob,
