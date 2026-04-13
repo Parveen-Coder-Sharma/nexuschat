@@ -14,10 +14,9 @@ import CreateGroupModal from './components/CreateGroupModal';
 
 const socket = io.connect("https://nexuschat-backend-ysa6.onrender.com");
 
-const msgNotificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'); 
 const incomingRingSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1356/1356-preview.mp3'); 
 incomingRingSound.loop = true; 
-const outgoingRingSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1197/1197-preview.mp3'); 
+const outgoingRingSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1353/1353-preview.mp3'); 
 outgoingRingSound.loop = true; 
 
 function App() {
@@ -70,7 +69,6 @@ function App() {
     toast("Logged out successfully", { icon: '👋' }); 
   };
 
-  // 🔥 BONUS TIP APPLIED: Browser Tab Alert Logic
   useEffect(() => {
     const totalUnread = users.reduce((acc, u) => acc + (u.unreadCount || 0), 0) + groups.reduce((acc, g) => acc + (g.unreadCount || 0), 0);
     document.title = totalUnread > 0 ? `(${totalUnread}) NexusChat` : 'NexusChat';
@@ -331,26 +329,21 @@ function App() {
   return (
     <div className={isDarkMode ? "dark" : ""}>
       <audio ref={incomingAudioRef} src="https://assets.mixkit.co/active_storage/sfx/1356/1356-preview.mp3" loop />
-      <audio ref={outgoingAudioRef} src="https://assets.mixkit.co/active_storage/sfx/1197/1197-preview.mp3" loop />
+      <audio ref={outgoingAudioRef} src="https://assets.mixkit.co/active_storage/sfx/1353/1353-preview.mp3" loop />
       <audio ref={msgAudioRef} src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" />
 
       <Toaster position="top-center" /> 
       <ProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} currentUser={currentUser} token={token} onProfileUpdate={setCurrentUser} />
-      
       <CreateGroupModal isOpen={isCreateGroupModalOpen} onClose={() => setIsCreateGroupModalOpen(false)} contacts={users} onCreateGroup={handleCreateGroup} isDarkMode={isDarkMode} />
-      
       <VideoCallModal callStatus={callStatus} callContext={callContext} myStream={myStream} remoteStream={remoteStream} onAnswer={answerCall} onReject={handleEndCallClick} onEnd={handleEndCallClick} toggleMic={toggleMic} toggleVideo={toggleVideo} isMicOn={isMicOn} isVideoOn={isVideoOn} />
       
-      {/* 🔥 MOBILE RESPONSIVENESS APPLIED HERE */}
-      <div className={`h-screen w-full flex items-center justify-center p-0 sm:p-6 font-sans transition-colors duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-200'}`}>
+      <div className={`h-screen w-full flex items-center justify-center p-0 sm:p-6 font-sans transition-colors duration-300 overflow-hidden ${isDarkMode ? 'bg-slate-900' : 'bg-slate-200'}`}>
         <div className={`flex h-full w-full max-w-[1400px] sm:rounded-[2rem] shadow-2xl overflow-hidden border ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-white/50'}`}>
           
-          {/* Sidebar is hidden on mobile if a user is selected */}
           <div className={`w-full sm:w-[380px] h-full ${selectedUser ? 'hidden sm:flex' : 'flex'}`}>
              <Sidebar users={users} groups={groups} selectedUser={selectedUser} onSelectUser={setSelectedUser} onLogout={handleLogout} onAddContact={handleAddContact} currentUser={currentUser} onOpenProfile={() => setIsProfileModalOpen(true)} isDarkMode={isDarkMode} onOpenCreateGroup={() => setIsCreateGroupModalOpen(true)} />
           </div>
           
-          {/* ChatArea is hidden on mobile if NO user is selected */}
           <div className={`flex-1 flex-col relative transition-colors duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-[#f8fafc]'} ${!selectedUser ? 'hidden sm:flex' : 'flex w-full'}`}>
              <ChatArea selectedUser={selectedUser} myId={myId} messageList={messageList} users={users} onSendMessage={sendMessage} onForwardMessage={handleForwardMessage} onDeleteMessage={deleteMessage} onClearChat={clearChat} socket={socket} onInitiateCall={initiateCall} onLoadMore={loadMoreMessages} hasMoreMessages={hasMoreMessages} isLoadingHistory={isLoadingHistory} onReact={handleReactToMessage} isDarkMode={isDarkMode} toggleDarkMode={() => setIsDarkMode(!isDarkMode)} onBack={() => setSelectedUser(null)} />
           </div>
