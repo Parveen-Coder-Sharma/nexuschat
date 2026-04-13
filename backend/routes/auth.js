@@ -1,19 +1,17 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
+const axios = require('axios'); // 🔥 Axios for Brevo API
 const User = require('../models/User');
 const Otp = require('../models/Otp');
 const router = express.Router();
 
-// Nodemailer Config
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-});
-
-// 1. Send OTP API
+// ==========================================
+// 1. SEND OTP API (Via BREVO API)
+// ==========================================
 router.post('/send-otp', async (req, res) => {
+    console.log("🚀 Frontend request received for:", req.body.identifier);
+    
     try {
         const { identifier, type } = req.body; // type: 'register' or 'forgot'
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -25,22 +23,36 @@ router.post('/send-otp', async (req, res) => {
         await Otp.deleteMany({ identifier });
         await Otp.create({ identifier, otp });
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: identifier,
-            subject: 'NexusChat - Your Security Code',
-            html: `<h3>Welcome to NexusChat</h3><p>Your OTP is: <b style="font-size: 20px;">${otp}</b></p>`
+        // 🔥 BREVO API CALL (Bypasses Render SMTP Block)
+        await axios.post('https://api.brevo.com/v3/smtp/email', {
+            sender: { name: "NexusChat Premium", email: process.env.EMAIL_USER },
+            to: [{ email: identifier }],
+            subject: "NexusChat - Your Security Code",
+            htmlContent: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f8fafc;">
+                    <h2 style="color: #1e3a8a;">NexusChat Security</h2>
+                    <p>Your verification code is:</p>
+                    <h1 style="background: #1e3a8a; color: white; padding: 10px 20px; display: inline-block; border-radius: 10px; letter-spacing: 5px;">${otp}</h1>
+                    <p style="color: #64748b; font-size: 12px;">This code will expire in 5 minutes.</p>
+                </div>`
+        }, {
+            headers: {
+                'accept': 'application/json',
+                'api-key': process.env.BREVO_API_KEY,
+                'content-type': 'application/json'
+            }
         });
 
         res.status(200).json({ message: "OTP sent successfully!" });
     } catch (error) { 
-        // 🔥 YAHAN ADD KIYA HAI ASLI ERROR PAKADNE WALA CODE
-        console.error("🔥 ASLI ERROR YAHAN HAI:", error);
+        console.error("🔥 BREVO API ERROR:", error.response ? error.response.data : error.message);
         res.status(500).json({ message: "Failed to send OTP" }); 
     }
 });
 
-// 2. Final Register
+// ==========================================
+// 2. FINAL REGISTER
+// ==========================================
 router.post('/register', async (req, res) => {
     try {
         const { name, username, identifier, password, otp } = req.body;
@@ -57,7 +69,9 @@ router.post('/register', async (req, res) => {
     } catch (error) { res.status(500).json({ message: "Username already taken" }); }
 });
 
-// 3. Reset Password
+// ==========================================
+// 3. RESET PASSWORD
+// ==========================================
 router.post('/reset-password', async (req, res) => {
     try {
         const { identifier, otp, newPassword } = req.body;
@@ -73,7 +87,9 @@ router.post('/reset-password', async (req, res) => {
     } catch (error) { res.status(500).json({ message: "Failed to reset password" }); }
 });
 
-// 4. Login
+// ==========================================
+// 4. LOGIN
+// ==========================================
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
