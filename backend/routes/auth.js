@@ -33,7 +33,11 @@ router.post('/send-otp', async (req, res) => {
         });
 
         res.status(200).json({ message: "OTP sent successfully!" });
-    } catch (error) { res.status(500).json({ message: "Failed to send OTP" }); }
+    } catch (error) { 
+        // 🔥 YAHAN ADD KIYA HAI ASLI ERROR PAKADNE WALA CODE
+        console.error("🔥 ASLI ERROR YAHAN HAI:", error);
+        res.status(500).json({ message: "Failed to send OTP" }); 
+    }
 });
 
 // 2. Final Register

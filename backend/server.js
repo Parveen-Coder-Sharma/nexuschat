@@ -60,7 +60,10 @@ io.on("connection", (socket) => {
         try {
             await Message.findByIdAndUpdate(messageId, { status: 'read' });
             io.to(roomId).emit("message_read_update", { messageId, status: 'read' });
-        } catch (error) {}
+        } catch (error) {
+            // 🔥 Bas ye error log add kiya hai taaki future mein koi issue ho toh pata chal jaye
+            console.error("🔥 Error in mark_as_read:", error);
+        }
     });
 
     socket.on("delete_message", ({ messageId, roomId }) => { io.to(roomId).emit("message_deleted_update", messageId); });
